@@ -13,7 +13,7 @@ class GroupOut(BaseModel):
     destination: str
     created_at: datetime
     request_ids: List[int]
+    is_completed: bool  #응답에 포함
 
     class Config:
         orm_mode = True
-
