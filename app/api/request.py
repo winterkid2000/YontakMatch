@@ -17,7 +17,7 @@ def create_ride_request(request: RideRequestCreate, db: Session = Depends(get_db
         email=request.email,
         departure=request.departure,
         destination=request.destination,
-        departure_time=request.departure_time  # ✅ 출발 시간 추가
+        departure_time=request.departure_time  #출발 시간 추가
     )
     db.add(new_request)
     db.commit()
