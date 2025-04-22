@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.models.ride_group import RideGroup, RideRequestInGroup
@@ -38,14 +38,16 @@ def auto_match_groups(db: Session = Depends(get_db)):
             departure=new_group.departure,
             destination=new_group.destination,
             created_at=new_group.created_at,
-            request_ids=[r.id for r in group_requests]
+            request_ids=[r.id for r in group_requests],
+            is_completed=new_group.is_completed
         ))
 
     return result
 
+
 @router.get("/group", response_model=List[GroupOut])
 def list_groups(db: Session = Depends(get_db)):
-    groups = db.query(RideGroup).all()
+    groups = db.query(RideGroup).filter(RideGroup.is_completed == False).all()
     result = []
 
     for group in groups:
@@ -57,7 +59,24 @@ def list_groups(db: Session = Depends(get_db)):
             departure=group.departure,
             destination=group.destination,
             created_at=group.created_at,
-            request_ids=request_ids
+            request_ids=request_ids,
+            is_completed=group.is_completed
+        ))
+
+    return result
+
+
+#이동 완료 처리 API 추가
+@router.post("/group/{group_id}/complete")
+def complete_group(group_id: int, db: Session = Depends(get_db)):
+    group = db.query(RideGroup).filter(RideGroup.id == group_id).first()
+    if not group:
+        raise HTTPException(status_code=404, detail="그룹이 존재하지 않습니다.")
+
+    group.is_completed = True
+    db.commit()
+    return {"message": "그룹 이동이 완료되었습니다."}
+
         ))
 
     return result
