@@ -11,6 +11,7 @@ class RideRequest(Base):
     email = Column(String, index=True, nullable=False)
     departure = Column(String, nullable=False)
     destination = Column(String, nullable=False)
+    departure_time = Column(DateTime, nullable=True)  #출발 예정 시간
     is_matched = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
