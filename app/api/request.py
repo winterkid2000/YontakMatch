@@ -16,7 +16,8 @@ def create_ride_request(request: RideRequestCreate, db: Session = Depends(get_db
     new_request = RideRequest(
         email=request.email,
         departure=request.departure,
-        destination=request.destination
+        destination=request.destination,
+        departure_time=request.departure_time  # ✅ 출발 시간 추가
     )
     db.add(new_request)
     db.commit()
@@ -29,10 +30,25 @@ def list_ride_requests(
     departure: str = Query(None),
     destination: str = Query(None)
 ):
-    query = db.query(RideRequest)
+    query = db.query(RideRequest).filter(RideRequest.is_matched == False)
     if departure:
         query = query.filter(RideRequest.departure == departure)
     if destination:
         query = query.filter(RideRequest.destination == destination)
     return query.order_by(RideRequest.created_at.desc()).all()
+
+#요청 삭제 (취소) 기능 추가
+@router.delete("/request/{request_id}")
+def delete_ride_request(
+    request_id: int,
+    db: Session = Depends(get_db)
+):
+    ride_request = db.query(RideRequest).filter(RideRequest.id == request_id).first()
+    if not ride_request:
+        raise HTTPException(status_code=404, detail="요청이 존재하지 않습니다.")
+
+    db.delete(ride_request)
+    db.commit()
+    return {"message": "요청이 성공적으로 삭제되었습니다."}
+
 
